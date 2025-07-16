@@ -3,337 +3,404 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>발표 스크립트 생성기</title>
-    <!-- Tailwind CSS CDN -->
+    <title>발표 시간 계산기</title>
+    <!-- Tailwind CSS CDN을 사용하여 간편하게 스타일링 -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts - Inter (for a clean, modern look) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* Custom font family for Inter */
+        /* Inter 폰트 적용 */
         body {
             font-family: 'Inter', sans-serif;
+            /* 스크롤바 숨기기 (선택 사항) */
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+            overflow-y: auto; /* 내용이 넘칠 경우 세로 스크롤 허용 */
         }
-        /* Custom modal styles */
-        .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 100; /* Sit on top */
-            left: 0;
-            top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        body::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera*/
         }
-        .modal-content {
-            background-color: #fefefe;
-            margin: auto;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-            border: 1px solid #ef4444; /* Red border for errors */
-        }
-        .close-button {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .close-button:hover,
-        .close-button:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .hidden {
-            display: none;
+        /* 한글 단어 잘림 방지 */
+        .word-break-keep-all {
+            word-break: keep-all;
         }
     </style>
+    <meta name="google-site-verification" content="gPRCmIqx-APsvWwdJKBr5nCFDOOODh7lriZfMGz0fGs" />
 </head>
-<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-4xl border border-blue-200">
-        <h1 class="text-4xl font-extrabold text-center text-gray-800 mb-8">
-            발표 스크립트 생성기 ✍️
-        </h1>
+<body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen flex items-center justify-center p-4">
+    <!-- 메인 컨테이너: 모바일에서는 1열, PC에서는 2열 그리드 -->
+    <div class="bg-white p-8 md:p-12 rounded-xl shadow-2xl w-full max-w-4xl mx-auto border border-gray-200 my-8
+                grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
 
-        <!-- 입력 폼 섹션 -->
-        <form id="scriptForm" class="space-y-6 mb-8">
-            <div>
-                <label for="topic" class="block text-lg font-semibold text-gray-700 mb-2">
-                    발표 주제:
-                </label>
-                <input
-                    type="text"
-                    id="topic"
-                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-200 ease-in-out shadow-sm"
-                    placeholder="예: 인공지능의 미래"
-                    required
-                />
-            </div>
+        <!-- PC 환경에서 제목이 전체 너비를 차지하도록 별도의 div로 감쌈 -->
+        <div class="col-span-full">
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-center text-gray-800 mb-4 md:mb-8">발표 시간 계산기 ⏱️</h1>
+        </div>
 
-            <div>
-                <label for="pdfUpload" class="block text-lg font-semibold text-gray-700 mb-2">
-                    PDF 자료 업로드 (선택 사항):
-                </label>
-                <input
-                    type="file"
-                    id="pdfUpload"
-                    accept=".pdf"
-                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-200 ease-in-out shadow-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                />
-                <p id="pdfLoadingStatus" class="text-sm text-gray-500 mt-2 hidden">
-                    <svg class="animate-spin inline-block -ml-1 mr-2 h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    PDF를 읽는 중...
+        <!-- 왼쪽 섹션 (PC에서 첫 번째 열) -->
+        <div class="flex flex-col space-y-6">
+            <!-- 발표 내용 입력 섹션 -->
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">1. 발표 내용 입력</h2>
+                <textarea
+                    id="presentationText"
+                    placeholder="발표할 내용을 여기에 입력하세요..."
+                    class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition duration-200 ease-in-out text-gray-700 h-40 resize-y"
+                ></textarea>
+                <p class="text-sm text-gray-600 mt-2">
+                    현재 단어 수: <span id="wordCount" class="font-bold text-blue-600">0</span>
                 </p>
             </div>
 
-            <div>
-                <label for="considerations" class="block text-lg font-semibold text-gray-700 mb-2">
-                    주요 고려 사항 (핵심 내용, 강조할 부분 등):
-                </label>
-                <textarea
-                    id="considerations"
-                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-200 ease-in-out shadow-sm h-32 resize-y"
-                    placeholder="예: 기술 발전의 속도, 윤리적 문제, 사회적 영향, 새로운 직업 기회 (PDF 내용이 여기에 추가될 수 있습니다.)"
-                    required
-                ></textarea>
-            </div>
-
-            <div>
-                <label for="time" class="block text-lg font-semibold text-gray-700 mb-2">
-                    발표 시간 (분):
-                </label>
+            <!-- 발표 속도 설정 섹션 -->
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">2. 발표 속도 설정</h2>
+                <label for="wordsPerMinute" class="block text-gray-700 font-medium mb-2">분당 읽는 단어 수:</label>
                 <input
                     type="number"
-                    id="time"
-                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition duration-200 ease-in-out shadow-sm"
-                    placeholder="예: 10"
-                    min="1"
-                    required
+                    id="wordsPerMinute"
+                    value="120"
+                    min="10"
+                    max="300"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition duration-200 ease-in-out text-gray-700"
                 />
+                <p class="text-sm text-gray-500 mt-2">평균적으로 1분당 120~150단어를 읽습니다.</p>
             </div>
 
+            <!-- 시각 자료 설정 섹션 -->
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">3. 시각 자료 설정 (선택)</h2>
+                <label for="imageCount" class="block text-gray-700 font-medium mb-2">이미지/차트 개수:</label>
+                <input
+                    type="number"
+                    id="imageCount"
+                    value="0"
+                    min="0"
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition duration-200 ease-in-out text-gray-700"
+                />
+                <p class="text-sm text-gray-500 mt-2">이미지 1개당 평균 10초가 추가됩니다.</p>
+            </div>
+            
+            <!-- 계산 버튼 -->
             <button
-                type="submit"
-                id="generateButton"
-                class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-bold text-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-300 ease-in-out shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                id="calculateButton"
+                class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
             >
-                <span id="buttonText">스크립트 생성하기</span>
-                <svg id="loadingSpinner" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+                발표 시간 계산하기
             </button>
-        </form>
 
-        <!-- 스크립트 결과 섹션 -->
-        <div id="scriptResult" class="bg-blue-50 p-6 rounded-xl border border-blue-200 shadow-inner hidden">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">생성된 발표 스크립트:</h2>
-            <div id="scriptContent" class="prose max-w-none text-gray-700 leading-relaxed whitespace-pre-wrap">
-                <!-- 생성된 스크립트가 여기에 표시됩니다. -->
+            <!-- 결과 표시 섹션 -->
+            <div class="mt-4 p-6 bg-green-50 rounded-xl border border-green-200 text-center">
+                <h2 class="text-xl font-semibold text-green-800 mb-3">4. 예상 발표 시간</h2>
+                <!-- 한글 단어 잘림 방지를 위한 word-break-keep-all 클래스 추가 -->
+                <p id="resultDisplay" class="text-2xl font-extrabold text-green-700 word-break-keep-all">내용을 입력하고 계산 버튼을 눌러주세요.</p>
             </div>
         </div>
 
-        <!-- 에러 모달 -->
-        <div id="errorModal" class="modal hidden">
-            <div class="modal-content">
-                <span class="close-button" onclick="closeModal()">&times;</span>
-                <h3 class="text-xl font-bold text-red-600 mb-4">오류 발생!</h3>
-                <p id="errorMessage" class="text-gray-700 mb-6"></p>
-                <button
-                    onclick="closeModal()"
-                    class="w-full bg-red-500 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 transition duration-200 ease-in-out"
+        <!-- 오른쪽 섹션 (PC에서 두 번째 열) -->
+        <div class="flex flex-col space-y-6">
+            <!-- 스톱워치 섹션 -->
+            <!-- min-h-[220px]를 추가하여 발표 내용 입력 섹션과 높이를 시각적으로 맞춤 -->
+            <div class="p-6 bg-yellow-50 rounded-xl border border-yellow-200 text-center flex flex-col justify-center min-h-[220px]">
+                <h2 class="text-xl font-semibold text-yellow-800 mb-4">5. 스톱워치 ⏱️</h2>
+                <!-- 스톱워치 숫자가 한 줄에 표시되도록 flex 및 whitespace-nowrap 추가 -->
+                <div class="flex justify-center items-baseline text-5xl font-extrabold text-yellow-700 mb-4 whitespace-nowrap">
+                    <span id="minutes">00</span>:<span id="seconds">00</span>.<span id="milliseconds">00</span>
+                </div>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <button
+                        id="startButton"
+                        class="flex-1 min-w-[100px] bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 ease-in-out"
+                    >
+                        시작
+                    </button>
+                    <button
+                        id="pauseButton"
+                        class="flex-1 min-w-[100px] bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 ease-in-out"
+                    >
+                        일시정지
+                    </button>
+                    <button
+                        id="resetButton"
+                        class="flex-1 min-w-[100px] bg-gradient-to-r from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 ease-in-out"
+                    >
+                        초기화
+                    </button>
+                </div>
+            </div>
+
+            <!-- 음성 녹음기 섹션 -->
+            <div class="p-6 bg-blue-50 rounded-xl border border-blue-200 text-center">
+                <h2 class="text-xl font-semibold text-blue-800 mb-4">6. 음성 녹음기 🎤</h2>
+                <div class="flex flex-wrap justify-center gap-4 mb-4">
+                    <button
+                        id="recordStartButton"
+                        class="flex-1 min-w-[100px] bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 ease-in-out"
+                    >
+                        녹음 시작
+                    </button>
+                    <button
+                        id="recordStopButton"
+                        class="flex-1 min-w-[100px] bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 ease-in-out"
+                        disabled
+                    >
+                        녹음 중지
+                    </button>
+                    <button
+                        id="recordResetButton"
+                        class="flex-1 min-w-[100px] bg-gradient-to-r from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 ease-in-out"
+                    >
+                        다시하기
+                    </button>
+                </div>
+                <audio id="audioPlayback" controls class="w-full mt-4 hidden"></audio>
+                <a
+                    id="downloadRecording"
+                    class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 ease-in-out mt-4 inline-block hidden"
+                    download="presentation_recording.webm"
                 >
-                    닫기
-                </button>
+                    녹음 파일 다운로드 (.webm)
+                </a>
+                <!-- "마이크 접근을 허용하고 녹음을 시작하세요." 텍스트 줄바꿈 및 잘림 방지 -->
+                <!-- overflow-x-auto를 제거하고 word-break-keep-all을 적용하여 자연스러운 줄바꿈 유도 -->
+                <p id="recordStatus" class="text-sm text-gray-600 mt-2 word-break-keep-all">마이크 접근을 허용하고 녹음을 시작하세요.</p>
+            </div>
+        </div>
+
+        <!-- 카카오 광고 섹션 추가 -->
+        <!-- 가장 바깥 div에 overflow-x-auto를 적용하여 광고 잘림 방지 -->
+        <div class="col-span-full mt-8 p-4 bg-gray-50 rounded-xl border border-gray-200 text-center flex justify-center items-center overflow-x-auto">
+            <!-- 광고 컨테이너: max-w-full로 부모 너비에 맞추고, 가운데 정렬 -->
+            <div class="w-full max-w-full mx-auto flex justify-center items-center">
+                <ins class="kakao_ad_area"
+                    data-ad-unit = "DAN-RdSQsZQ3tUPrjosL"
+                    data-ad-width = "300"
+                    data-ad-height = "250"></ins>
             </div>
         </div>
     </div>
 
-    <!-- PDF.js CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <!-- 카카오 광고 스크립트 (body 닫는 태그 바로 위에 위치) -->
+    <script type="text/javascript" src="//t1.daumcdn.net/kas/static/ba.min.js" async></script>
+
     <script>
-        // PDF.js 워커 스크립트 경로 설정 (필수)
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM 요소들을 가져옵니다.
+            const presentationText = document.getElementById('presentationText');
+            const wordCountDisplay = document.getElementById('wordCount');
+            const wordsPerMinuteInput = document.getElementById('wordsPerMinute');
+            const imageCountInput = document.getElementById('imageCount');
+            const calculateButton = document.getElementById('calculateButton');
+            const resultDisplay = document.getElementById('resultDisplay');
 
-        // API 키
-        const apiKey = "AIzaSyAOhe2tQI9j5hAQUn4a6FzJMN6wnVL01Hs"; // 사용자 제공 API 키 반영
+            // 스톱워치 관련 DOM 요소
+            const minutesDisplay = document.getElementById('minutes');
+            const secondsDisplay = document.getElementById('seconds');
+            const millisecondsDisplay = document.getElementById('milliseconds');
+            const startButton = document.getElementById('startButton');
+            const pauseButton = document.getElementById('pauseButton');
+            const resetButton = document.getElementById('resetButton');
 
-        // DOM 요소 가져오기
-        const scriptForm = document.getElementById('scriptForm');
-        const topicInput = document.getElementById('topic');
-        const considerationsInput = document.getElementById('considerations');
-        const timeInput = document.getElementById('time');
-        const pdfUploadInput = document.getElementById('pdfUpload'); // PDF 업로드 input
-        const pdfLoadingStatus = document.getElementById('pdfLoadingStatus'); // PDF 로딩 상태
-        const generateButton = document.getElementById('generateButton');
-        const buttonText = document.getElementById('buttonText');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const scriptResult = document.getElementById('scriptResult');
-        const scriptContent = document.getElementById('scriptContent');
-        const errorModal = document.getElementById('errorModal');
-        const errorMessage = document.getElementById('errorMessage');
+            // 음성 녹음기 관련 DOM 요소
+            const recordStartButton = document.getElementById('recordStartButton');
+            const recordStopButton = document.getElementById('recordStopButton');
+            const recordResetButton = document.getElementById('recordResetButton'); // 다시하기 버튼 추가
+            const audioPlayback = document.getElementById('audioPlayback');
+            const downloadRecording = document.getElementById('downloadRecording');
+            const recordStatus = document.getElementById('recordStatus');
 
-        // 모달을 닫는 함수
-        function closeModal() {
-            errorModal.classList.add('hidden');
-            errorMessage.textContent = '';
-        }
+            // 스톱워치 변수
+            let startTime;
+            let elapsedTime = 0;
+            let timerInterval;
+            let isRunning = false;
 
-        // PDF 파일 읽기 및 텍스트 추출 함수
-        async function extractTextFromPdf(file) {
-            pdfLoadingStatus.classList.remove('hidden'); // 로딩 상태 표시
-            try {
-                const arrayBuffer = await file.arrayBuffer();
-                const pdfDocument = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                let fullText = '';
+            // 음성 녹음기 변수
+            let mediaRecorder;
+            let audioChunks = [];
+            let audioBlob;
+            let mediaStream; // 마이크 스트림을 저장할 변수
 
-                for (let i = 1; i <= pdfDocument.numPages; i++) {
-                    const page = await pdfDocument.getPage(i);
-                    const textContent = await page.getTextContent();
-                    const pageText = textContent.items.map(item => item.str).join(' ');
-                    fullText += pageText + '\n\n'; // 페이지 구분자 추가
+            // 텍스트 입력 시 단어 수 실시간 업데이트
+            presentationText.addEventListener('input', () => {
+                const text = presentationText.value.trim();
+                if (text === '') {
+                    wordCountDisplay.textContent = 0;
+                } else {
+                    // 정규식을 사용하여 공백(스페이스, 탭, 줄바꿈)으로 단어를 분리하고 빈 문자열을 필터링합니다.
+                    const words = text.split(/\s+/).filter(word => word !== '');
+                    wordCountDisplay.textContent = words.length;
                 }
-                return fullText;
-            } catch (error) {
-                console.error('PDF 텍스트 추출 오류:', error);
-                errorMessage.textContent = 'PDF 파일에서 텍스트를 추출하는 데 실패했습니다. 파일이 손상되었거나 지원되지 않는 형식일 수 있습니다.';
-                errorModal.classList.remove('hidden');
-                return null; // 오류 발생 시 null 반환
-            } finally {
-                pdfLoadingStatus.classList.add('hidden'); // 로딩 상태 숨김
-            }
-        }
+            });
 
-        // PDF 파일 업로드 변경 이벤트 리스너
-        pdfUploadInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                if (file.type !== 'application/pdf') {
-                    errorMessage.textContent = 'PDF 파일만 업로드할 수 있습니다.';
-                    errorModal.classList.remove('hidden');
-                    pdfUploadInput.value = ''; // 파일 선택 초기화
+            // 계산 버튼 클릭 이벤트
+            calculateButton.addEventListener('click', () => {
+                const text = presentationText.value.trim();
+                // 텍스트가 비어있으면 단어 수는 0으로 처리합니다.
+                const wordCount = text === '' ? 0 : text.split(/\s+/).filter(word => word !== '').length;
+                const wordsPerMinute = parseInt(wordsPerMinuteInput.value, 10);
+                const imageCount = parseInt(imageCountInput.value, 10);
+
+                // 유효성 검사
+                if (isNaN(wordsPerMinute) || wordsPerMinute <= 0) {
+                    resultDisplay.textContent = "분당 읽는 단어 수를 올바르게 입력해주세요.";
+                    resultDisplay.style.color = '#dc3545'; // 에러 색상 (Tailwind: text-red-600)
                     return;
                 }
-
-                const pdfText = await extractTextFromPdf(file);
-                if (pdfText) {
-                    // 기존 내용이 있다면 줄 바꿈 추가 후 PDF 내용 추가
-                    if (considerationsInput.value.trim() !== '') {
-                        considerationsInput.value += '\n\n--- PDF 내용 시작 ---\n\n' + pdfText;
-                    } else {
-                        considerationsInput.value = pdfText;
+                if (isNaN(imageCount) || imageCount < 0) {
+                    resultDisplay.textContent = "이미지 개수를 올바르게 입력해주세요.";
+                    resultDisplay.style.color = '#dc3545'; // 에러 색상 (Tailwind: text-red-600)
+                    return;
                     }
-                    // 스크롤을 맨 아래로 이동하여 PDF 내용이 보이도록 함
-                    considerationsInput.scrollTop = considerationsInput.scrollHeight;
+
+                // 텍스트 기반 예상 시간 (분)
+                const textMinutes = wordCount / wordsPerMinute;
+                
+                // 이미지 추가 시간 (초)
+                const timePerImage = 10; // 이미지 1개당 10초 추가
+                const imageSeconds = imageCount * timePerImage;
+
+                // 총 예상 시간 (초)
+                const totalSeconds = (textMinutes * 60) + imageSeconds;
+
+                // 분과 초로 변환
+                const finalMinutes = Math.floor(totalSeconds / 60);
+                const finalSeconds = Math.round(totalSeconds % 60);
+
+                resultDisplay.textContent = `예상 발표 시간: ${finalMinutes}분 ${finalSeconds}초 🚀`;
+                resultDisplay.style.color = '#28a745'; // 성공 색상 (Tailwind: text-green-700)
+            });
+
+            // 스톱워치 함수들
+
+            // 시간 업데이트 및 표시
+            function updateTimeDisplay() {
+                const now = Date.now();
+                const currentElapsedTime = now - startTime + elapsedTime; // 현재까지의 총 경과 시간
+
+                let minutes = Math.floor(currentElapsedTime / 60000);
+                let seconds = Math.floor((currentElapsedTime % 60000) / 1000);
+                let milliseconds = Math.floor((currentElapsedTime % 1000) / 10); // 10ms 단위로 표시
+
+                minutesDisplay.textContent = String(minutes).padStart(2, '0');
+                secondsDisplay.textContent = String(seconds).padStart(2, '0');
+                millisecondsDisplay.textContent = String(milliseconds).padStart(2, '0');
+            }
+
+            // 스톱워치 시작
+            function startTimer() {
+                if (!isRunning) {
+                    isRunning = true;
+                    startTime = Date.now(); // 시작 시간 기록
+                    timerInterval = setInterval(updateTimeDisplay, 10); // 10ms마다 업데이트
                 }
             }
-        });
 
-        // 폼 제출 이벤트 리스너
-        scriptForm.addEventListener('submit', async (e) => {
-            e.preventDefault(); // 기본 폼 제출 동작 방지
-
-            // 이전 스크립트 및 에러 메시지 초기화
-            scriptResult.classList.add('hidden');
-            scriptContent.textContent = '';
-            closeModal(); // 혹시 열려있을지 모르는 모달 닫기
-
-            const topic = topicInput.value.trim();
-            const considerations = considerationsInput.value.trim(); // PDF 내용이 이미 포함될 수 있음
-            const time = timeInput.value.trim();
-
-            // 입력 값 유효성 검사
-            if (!topic || !considerations || !time) {
-                errorMessage.textContent = '모든 필드를 입력해주세요.';
-                errorModal.classList.remove('hidden');
-                return;
-            }
-
-            const parsedTime = parseInt(time, 10);
-            if (isNaN(parsedTime) || parsedTime <= 0) {
-                errorMessage.textContent = '유효한 발표 시간을 입력해주세요 (양의 숫자).';
-                errorModal.classList.remove('hidden');
-                return;
-            }
-
-            // 로딩 상태 시작
-            generateButton.disabled = true;
-            buttonText.textContent = '스크립트 생성 중...';
-            loadingSpinner.classList.remove('hidden');
-
-            try {
-                // Gemini API에 보낼 프롬프트 구성
-                const prompt = `
-                    다음 정보를 바탕으로 발표 스크립트를 작성해주세요.
-                    발표 주제: ${topic}
-                    주요 고려 사항: ${considerations}
-                    발표 시간: ${parsedTime}분
-
-                    스크립트는 발표 시간 내에 발표할 수 있도록 적절한 길이로 작성되어야 합니다.
-                    서론, 본론, 결론으로 구성하고, 각 섹션에 대한 간략한 제목을 포함해주세요.
-                    자연스럽고 전문적인 어조로 작성해주세요.
-                `;
-
-                // 채팅 기록 초기화 및 사용자 프롬프트 추가
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-
-                // API 요청 페이로드
-                const payload = { contents: chatHistory };
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-                // Gemini API 호출
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                // 응답 파싱
-                const result = await response.json();
-
-                // 응답에서 스크립트 추출 및 표시
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const generatedText = result.candidates[0].content.parts[0].text;
-                    scriptContent.textContent = generatedText;
-                    scriptResult.classList.remove('hidden'); // 스크립트 결과 섹션 표시
-                } else {
-                    // 응답 구조가 예상과 다른 경우
-                    errorMessage.textContent = '스크립트 생성에 실패했습니다. 다시 시도해주세요.';
-                    errorModal.classList.remove('hidden');
-                    console.error('API 응답 구조 오류:', result);
+            // 스톱워치 일시정지
+            function pauseTimer() {
+                if (isRunning) {
+                    isRunning = false;
+                    clearInterval(timerInterval); // 타이머 중지
+                    elapsedTime += Date.now() - startTime; // 경과 시간 누적
                 }
-            } catch (err) {
-                // 네트워크 오류 또는 기타 예외 처리
-                errorMessage.textContent = '스크립트를 생성하는 중 오류가 발생했습니다. 네트워크 연결을 확인하거나 나중에 다시 시도해주세요.';
-                errorModal.classList.remove('hidden');
-                console.error('API 호출 오류:', err);
-            } finally {
-                // 로딩 상태 종료
-                generateButton.disabled = false;
-                buttonText.textContent = '스크립트 생성하기';
-                loadingSpinner.classList.add('hidden');
             }
+
+            // 스톱워치 초기화
+            function resetTimer() {
+                isRunning = false;
+                clearInterval(timerInterval); // 타이머 중지
+                elapsedTime = 0; // 경과 시간 초기화
+                minutesDisplay.textContent = '00';
+                secondsDisplay.textContent = '00';
+                millisecondsDisplay.textContent = '00';
+            }
+
+            // 스톱워치 버튼 이벤트 리스너
+            startButton.addEventListener('click', startTimer);
+            pauseButton.addEventListener('click', pauseTimer);
+            resetButton.addEventListener('click', resetTimer);
+
+            // 음성 녹음기 함수들
+
+            // 녹음 시작
+            recordStartButton.addEventListener('click', async () => {
+                try {
+                    // 마이크 접근 요청
+                    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true }); // 스트림 저장
+                    // MediaRecorder 인스턴스 생성
+                    mediaRecorder = new MediaRecorder(mediaStream);
+                    audioChunks = []; // 새로운 녹음을 위해 청크 배열 초기화
+
+                    // 데이터가 사용 가능할 때마다 청크 저장
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+
+                    // 녹음이 중지되었을 때 처리
+                    mediaRecorder.onstop = () => {
+                        audioBlob = new Blob(audioChunks, { type: 'audio/webm' }); // WebM 형식으로 Blob 생성
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        audioPlayback.src = audioUrl; // 오디오 플레이어에 소스 설정
+                        audioPlayback.classList.remove('hidden'); // 오디오 플레이어 표시
+                        downloadRecording.href = audioUrl; // 다운로드 링크 설정
+                        downloadRecording.classList.remove('hidden'); // 다운로드 버튼 표시
+                        recordStatus.textContent = '녹음이 완료되었습니다. 재생하거나 다운로드하세요.';
+                        
+                        // 마이크 스트림 중지
+                        mediaStream.getTracks().forEach(track => track.stop());
+                    };
+
+                    mediaRecorder.start(); // 녹음 시작
+                    startTimer(); // 녹음 시작과 동시에 스톱워치 시작
+                    recordStatus.textContent = '녹음 중... 🔴';
+                    recordStartButton.disabled = true;
+                    recordStopButton.disabled = false;
+                    recordResetButton.disabled = false; // 다시하기 버튼 활성화
+                    audioPlayback.classList.add('hidden'); // 새 녹음 시작 시 기존 플레이어 숨기기
+                    downloadRecording.classList.add('hidden'); // 새 녹음 시작 시 기존 다운로드 버튼 숨기기
+
+                } catch (err) {
+                    recordStatus.textContent = `마이크 접근 오류: ${err.message}. 마이크 권한을 확인해주세요.`;
+                    recordStatus.style.color = '#dc3545'; // 에러 색상
+                    console.error('마이크 접근 오류:', err);
+                }
+            });
+
+            // 녹음 중지
+            recordStopButton.addEventListener('click', () => {
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop(); // 녹음 중지
+                    pauseTimer(); // 녹음 중지와 동시에 스톱워치 일시정지
+                    recordStartButton.disabled = false;
+                    recordStopButton.disabled = true;
+                }
+            });
+
+            // 녹음 다시하기 (초기화)
+            recordResetButton.addEventListener('click', () => {
+                // 녹음 중이었다면 중지
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                }
+                // 마이크 스트림이 있다면 중지
+                if (mediaStream) {
+                    mediaStream.getTracks().forEach(track => track.stop());
+                }
+                
+                audioChunks = []; // 오디오 청크 초기화
+                audioBlob = null; // 오디오 Blob 초기화
+                audioPlayback.src = ''; // 오디오 플레이어 소스 초기화
+                audioPlayback.classList.add('hidden'); // 오디오 플레이어 숨기기
+                downloadRecording.href = '#'; // 다운로드 링크 초기화
+                downloadRecording.classList.add('hidden'); // 다운로드 버튼 숨기기
+                recordStatus.textContent = '마이크 접근을 허용하고 녹음을 시작하세요.';
+                recordStatus.style.color = '#6b7280'; // 기본 색상으로 변경
+
+                recordStartButton.disabled = false;
+                recordStopButton.disabled = true;
+                recordResetButton.disabled = true; // 초기화 후 다시하기 버튼 비활성화
+
+                resetTimer(); // 스톱워치도 초기화
+            });
         });
     </script>
-
-    <!-- Kakao Ad Script -->
-    <ins class="kakao_ad_area" style="display:none;"
-    data-ad-unit = "DAN-D3KIhJuCcXgQddta"
-    data-ad-width = "160"
-    data-ad-height = "600"></ins>
-    <script type="text/javascript" src="//t1.daumcdn.net/kas/static/ba.min.js" async></script>
 </body>
 </html>
